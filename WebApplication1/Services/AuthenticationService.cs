@@ -1,8 +1,5 @@
-﻿using AutoMapper;
-using IdentityModel.Client;
+﻿using IdentityModel.Client;
 using Microsoft.Extensions.Caching.Memory;
-using System.Text.Json;
-using WebApplication1.Models;
 
 namespace WebApplication1.Services
 {
@@ -10,13 +7,11 @@ namespace WebApplication1.Services
     {
         private readonly IMemoryCache _memoryCache;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IMapper _mapper;
 
-        public AuthenticationService(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, IMapper mapper)
+        public AuthenticationService(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
         {
             _httpClientFactory = httpClientFactory;
             _memoryCache = memoryCache;
-            _mapper = mapper;
         }
 
         public async Task<string> RetrieveToken()
