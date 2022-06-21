@@ -26,8 +26,6 @@ builder.Services.AddHttpClient("IdentityClient", client =>
     client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
 });
 
-builder.Services.AddAutoMapper(typeof(Program));
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
