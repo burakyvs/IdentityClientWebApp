@@ -12,7 +12,7 @@ builder.Services.AddTransient<AuthenticationDelegatingHandler>();
 
 builder.Services.AddHttpClient("TestServiceClient", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5015/"); // API GATEWAY URL
+    client.BaseAddress = new Uri(builder.Configuration["Services:TestServiceURL"]); // API GATEWAY URL
     client.DefaultRequestHeaders.Clear();
     client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
 }).AddHttpMessageHandler<AuthenticationDelegatingHandler>();
@@ -21,7 +21,7 @@ builder.Services.AddHttpClient("TestServiceClient", client =>
 // 2 create an HttpClient used for accessing the IDP
 builder.Services.AddHttpClient("IdentityClient", client =>
 {
-    client.BaseAddress = new Uri("http://localhost:5000/");
+    client.BaseAddress = new Uri(builder.Configuration["Services:IdentityServerURL"]);
     client.DefaultRequestHeaders.Clear();
     client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
 });
