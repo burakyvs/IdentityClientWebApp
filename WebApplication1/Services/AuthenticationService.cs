@@ -39,7 +39,6 @@ namespace WebApplication1.Services
                 #region Login
 
                 var httpClient = _httpClientFactory.CreateClient("IdentityClient");
-                //var tokenClient = new TokenClient(httpClient, new TokenClientOptions() { );
 
                 PasswordTokenRequest tokenRequest = new PasswordTokenRequest
                 {
@@ -51,6 +50,7 @@ namespace WebApplication1.Services
                     Password = "Test123."
                 };
 
+                // get tokens using password grant type.
                 var response = await httpClient.RequestPasswordTokenAsync(tokenRequest).ConfigureAwait(false);
                 accessToken = response.AccessToken ?? throw new ArgumentNullException(nameof(response.AccessToken));
                 refreshToken = response.RefreshToken ?? throw new ArgumentNullException(nameof(response.RefreshToken));
@@ -58,6 +58,7 @@ namespace WebApplication1.Services
                 TimeSpan accessTokenExpiresIn = TimeSpan.FromSeconds(response.ExpiresIn);
                 TimeSpan refreshTokenExpiresIn = TimeSpan.FromDays(60);
 
+                // cache tokens in memory.
                 _memoryCache.Set("AccessToken", accessToken, accessTokenExpiresIn);
                 _memoryCache.Set("RefreshToken", refreshToken, refreshTokenExpiresIn);
 
@@ -78,11 +79,13 @@ namespace WebApplication1.Services
                 RefreshToken = refreshToken
             };
 
+            // get a new access_token via refresh_token.
             var refreshTokenResponse = await httpClient.RequestRefreshTokenAsync(refreshTokenRequest).ConfigureAwait(false);
-            var accessToken = refreshTokenResponse.AccessToken ?? throw new ArgumentNullException(nameof(response.AccessToken));
+            var accessToken = refreshTokenResponse.AccessToken ?? throw new ArgumentNullException(nameof(refreshTokenResponse.AccessToken));
 
             TimeSpan rtAccessTokenExpiresIn = TimeSpan.FromSeconds(refreshTokenResponse.ExpiresIn);
 
+            // cache new access_token in memory.
             _memoryCache.Set("AccessToken", accessToken, rtAccessTokenExpiresIn);
 
             return accessToken;
