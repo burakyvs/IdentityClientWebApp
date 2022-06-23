@@ -2,7 +2,8 @@
 {
     public class AuthenticationServiceConsts
     {
-        public const string Address = "/connect/token";
+        public const string GetTokenAddress = "/connect/token";
+        public const string CheckTokenExpirationAddress = "/auth/checktokenexpiration";
         public const string ClientId = "user_client";
         public const string ClientSecret = "secret2";
     }

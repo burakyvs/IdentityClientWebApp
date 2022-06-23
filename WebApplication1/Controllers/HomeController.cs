@@ -1,30 +1,22 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using WebApplication1.Models;
+using WebApplication1.Services;
 
 namespace WebApplication1.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ITestService _testService;
 
-        public HomeController(ILogger<HomeController> logger, IHttpClientFactory httpClientFactory)
+        public HomeController(ITestService testService)
         {
-            _logger = logger;
-            _httpClientFactory = httpClientFactory;
+            _testService = testService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var httpClient = _httpClientFactory.CreateClient("TestServiceClient");
-
-            var response = await httpClient.GetAsync("/api/data").ConfigureAwait(false);
-
-            response.EnsureSuccessStatusCode();
-
-
-            ViewData["resp"] = await response.Content.ReadAsStringAsync();
+            ViewData["resp"] = await _testService.GetData();
             return View();
         }
 

@@ -7,19 +7,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IAuthenticationService, AuthenticationService>();
 builder.Services.AddTransient<AuthenticationDelegatingHandler>();
 
-builder.Services.AddHttpClient("TestServiceClient", client =>
+builder.Services.AddHttpClient<ITestService, TestService>(client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["Services:TestServiceURL"]); // API GATEWAY URL
+    client.BaseAddress = new Uri(builder.Configuration["Services:TestServiceURL"]);
     client.DefaultRequestHeaders.Clear();
     client.DefaultRequestHeaders.Add(HeaderNames.Accept, "application/json");
 }).AddHttpMessageHandler<AuthenticationDelegatingHandler>();
 
 
 // 2 create an HttpClient used for accessing the IDP
-builder.Services.AddHttpClient("IdentityClient", client =>
+builder.Services.AddHttpClient<IAuthenticationService, AuthenticationService>(client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Services:IdentityServerURL"]);
     client.DefaultRequestHeaders.Clear();
