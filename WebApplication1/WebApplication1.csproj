@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="IdentityModel" Version="6.0.0" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.9" />
   </ItemGroup>
 
 </Project>

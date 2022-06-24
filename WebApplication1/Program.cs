@@ -1,4 +1,6 @@
 using Microsoft.Net.Http.Headers;
+using System.Net;
+using System.Web.Http;
 using WebApplication1.Authentication;
 using WebApplication1.Services;
 
@@ -10,6 +12,14 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IAuthenticationService, AuthenticationService>();
 builder.Services.AddTransient<AuthenticationDelegatingHandler>();
+//builder.Services.ConfigureApplicationCookie(options => options.LoginPath = "/home/login");
+//builder.Services
+//         .AddAuthentication()
+//         .AddCookie(options =>
+//         {
+//             options.LoginPath = "/home/login";
+//             options.LogoutPath = "/logout";
+//         });
 
 builder.Services.AddHttpClient<ITestService, TestService>(client =>
 {
@@ -36,6 +46,28 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.Use(async (ctx, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (HttpResponseException ex)
+    {
+        if(ex.Response.StatusCode == HttpStatusCode.Unauthorized)
+            ctx.Response.Redirect("/home/login");
+    }
+});
+
+//app.UseStatusCodePages(async context =>
+//{
+//    var response = context.HttpContext.Response;
+
+//    if (response.StatusCode == (int)HttpStatusCode.Unauthorized ||
+//            response.StatusCode == (int)HttpStatusCode.Forbidden)
+//        response.Redirect("/home/login");
+//});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

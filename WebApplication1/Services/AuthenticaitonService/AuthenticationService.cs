@@ -14,38 +14,8 @@ namespace WebApplication1.Services
             _httpClient = httpclient;
         }
 
-        public async Task<(TokenModel, TokenModel)> RetrieveToken(string? accessToken = null, string? refreshToken = null)
+        public async Task<(TokenModel?, TokenModel?)> RetrieveNewToken()
         {
-            TokenModel? accessTokenModel = null;
-            TokenModel? refreshTokenModel = null;
-
-            if (accessToken == null && refreshToken != null)
-            {
-                // GET TOKEN VIA REFRESH TOKEN
-                (accessTokenModel, refreshTokenModel) = await RetrieveTokenViaRefreshTokenAsync(refreshToken);
-
-                return (accessTokenModel, refreshTokenModel);
-            }
-            else if (accessToken != null)
-            {
-                // CHECK EXPIRATION
-                bool isTokenExpired = await IsTokenExpired(accessToken);
-
-                if (!isTokenExpired)
-                    return (new TokenModel { Token = accessToken }, new TokenModel());
-
-                if (refreshToken != null)
-                {
-                    // GET TOKEN VIA REFRESH TOKEN
-                    var (accessTokenModel1, refreshTokenModel1) = await RetrieveTokenViaRefreshTokenAsync(refreshToken);
-
-                    return (accessTokenModel1, refreshTokenModel1);
-                }
-            }
-
-            // REDIRECT TO LOGIN
-            #region Login
-
             PasswordTokenRequest tokenRequest = new PasswordTokenRequest
             {
                 Address = AuthenticationServiceConsts.GetTokenAddress,
@@ -58,18 +28,22 @@ namespace WebApplication1.Services
 
             // get tokens using password grant type.
             var response = await HttpClient.RequestPasswordTokenAsync(tokenRequest).ConfigureAwait(false);
-            accessToken = response.AccessToken ?? throw new ArgumentNullException(nameof(response.AccessToken));
-            refreshToken = response.RefreshToken ?? throw new ArgumentNullException(nameof(response.RefreshToken));
-            #endregion
 
-            accessTokenModel = new TokenModel()
+            if (response.IsError)
+                return (null, null);
+
+
+            var accessToken = response.AccessToken ?? throw new ArgumentNullException(nameof(response.AccessToken));
+            var refreshToken = response.RefreshToken ?? throw new ArgumentNullException(nameof(response.RefreshToken));
+
+            TokenModel accessTokenModel = new TokenModel()
             {
                 Token = accessToken,
                 ExpiresIn = response.ExpiresIn,
                 SetNewCookie = true
             };
 
-            refreshTokenModel = new TokenModel()
+            TokenModel refreshTokenModel = new TokenModel()
             {
                 Token = refreshToken,
                 ExpiresIn = (int)TimeSpan.FromDays(60).TotalSeconds,
@@ -77,6 +51,34 @@ namespace WebApplication1.Services
             };
 
             return (accessTokenModel, refreshTokenModel);
+        }
+
+        public async Task<(TokenModel?, TokenModel?)> RetrieveToken(string? accessToken = null, string? refreshToken = null)
+        {
+            if (accessToken == null && refreshToken != null)
+            {
+                // GET TOKEN VIA REFRESH TOKEN
+
+                return await RetrieveTokenViaRefreshTokenAsync(refreshToken);
+            }
+            else if (accessToken != null)
+            {
+                // CHECK EXPIRATION
+                bool isTokenExpired = await IsTokenExpired(accessToken);
+
+                if (!isTokenExpired)
+                    return (new TokenModel { Token = accessToken }, new TokenModel());
+
+                if (refreshToken != null)
+                {
+                    // GET TOKEN VIA REFRESH TOKEN
+
+                    return await RetrieveTokenViaRefreshTokenAsync(refreshToken);
+                }
+            }
+
+            // REDIRECT TO LOGIN
+            return (null, null);
         }
 
         private async Task<(TokenModel, TokenModel)> RetrieveTokenViaRefreshTokenAsync(string refreshToken)

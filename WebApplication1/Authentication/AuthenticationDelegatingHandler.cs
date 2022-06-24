@@ -1,4 +1,7 @@
-﻿using System.Net.Http.Headers;
+﻿using Microsoft.AspNetCore.Http.Extensions;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Web.Http;
 using WebApplication1.Services;
 
 namespace WebApplication1.Authentication
@@ -19,12 +22,17 @@ namespace WebApplication1.Authentication
             var accessTokenCookie = _contextAccessor.HttpContext?.Request.Cookies.FirstOrDefault(i => i.Key == "access_token").Value;
             var refreshTokenCookie = _contextAccessor.HttpContext?.Request.Cookies.FirstOrDefault(i => i.Key == "refresh_token").Value;
 
-            (TokenModel accessToken, TokenModel refreshToken) = 
+            (TokenModel? accessToken, TokenModel? refreshToken) = 
                 await _authenticationService
                       .RetrieveToken(
                         accessTokenCookie,
                         refreshTokenCookie
                         );
+
+            if (accessToken == null && refreshToken == null)
+            {
+                throw new HttpResponseException(HttpStatusCode.Unauthorized);
+            }
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
 
@@ -44,7 +52,6 @@ namespace WebApplication1.Authentication
                                 "secure;" +
                                 $"max-age={TimeSpan.FromDays(60).TotalSeconds};");
             }
-            
 
             return response;
         }

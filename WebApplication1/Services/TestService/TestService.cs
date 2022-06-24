@@ -14,8 +14,6 @@
         {
             var response = await _httpClient.GetAsync("/api/data").ConfigureAwait(false);
 
-            response.EnsureSuccessStatusCode();
-
             return await response.Content.ReadAsStringAsync();
         }
     }
